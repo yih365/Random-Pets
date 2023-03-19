@@ -11,10 +11,15 @@ import com.codepath.asynchttpclient.callback.JsonHttpResponseHandler
 import okhttp3.Headers
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var petList: MutableList<String>
+    private lateinit var rvPets: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        rvPets = findViewById(R.id.petListRV)
+        petList = mutableListOf()
 
         getDogImageURL()
     }
@@ -22,9 +27,16 @@ class MainActivity : AppCompatActivity() {
     private fun getDogImageURL() {
         val client = AsyncHttpClient()
 
-        client["https://dog.ceo/api/breeds/image/random", object : JsonHttpResponseHandler() {
+        client["https://dog.ceo/api/breeds/image/random/20", object : JsonHttpResponseHandler() {
             override fun onSuccess(statusCode: Int, headers: Headers, json: JsonHttpResponseHandler.JSON) {
-                Log.d("Dog Success", "$json")
+                val petImageArray = json.jsonObject.getJSONArray("message")
+                for (i in 0 until petImageArray.length()) {
+                    petList.add(petImageArray.getString(i))
+                }
+                val petAdapter = PetAdapter(petList)
+                rvPets.adapter = petAdapter
+                rvPets.layoutManager = LinearLayoutManager(this@MainActivity)
+                rvPets.addItemDecoration(DividerItemDecoration(this@MainActivity, LinearLayoutManager.VERTICAL))
             }
 
             override fun onFailure(
